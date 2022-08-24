@@ -212,6 +212,33 @@ Eigen::MatrixXf featureSHOT352(const Eigen::MatrixXf pointcloud,
     return p_descriptorFeature2eigen<pcl::SHOT352>(shot_descriptors);
 }
 
+Eigen::MatrixXf featureSHOT352Radius(const Eigen::MatrixXf pointcloud,
+                               const Eigen::MatrixXf keypoints,
+                               const float normal_radius,
+                               const float feature_radius){
+    pcl::PointCloud<pcl::PointXYZ>::Ptr p_pc = eigen2p_pcl<pcl::PointXYZ>(pointcloud);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr p_keypoints = eigen2p_pcl<pcl::PointXYZ>(keypoints);
+    pcl::PointCloud<pcl::Normal>::Ptr p_normals(new pcl::PointCloud<pcl::Normal> ());
+
+    // compute normal for keypoints
+    pcl::NormalEstimationOMP<pcl::PointXYZ, pcl::Normal> norm_est;
+    norm_est.setRadiusSearch(normal_radius);
+    norm_est.setSearchSurface(p_pc);
+    norm_est.setInputCloud(p_pc);
+    norm_est.compute(*p_normals);
+
+    pcl::SHOTEstimationOMP<pcl::PointXYZ, pcl::Normal, pcl::SHOT352> descr_est;
+    descr_est.setRadiusSearch (feature_radius);
+
+    descr_est.setInputCloud (p_keypoints);
+    descr_est.setInputNormals (p_normals);
+    descr_est.setSearchSurface (p_pc);
+
+    pcl::PointCloud<pcl::SHOT352>::Ptr shot_descriptors (new pcl::PointCloud<pcl::SHOT352> ());
+    descr_est.compute (*shot_descriptors);
+
+    return p_descriptorFeature2eigen<pcl::SHOT352>(shot_descriptors);
+}
 
 Eigen::MatrixXf featureSHOT352WithNormal(const Eigen::MatrixXf pointcloud,
                                const Eigen::MatrixXf normals,
@@ -283,6 +310,11 @@ PYBIND11_MODULE(PCLKeypoint, m) {
           py::arg("pointcloud"),
           py::arg("keypoints"),
           py::arg("compute_normal_k")=10,
+          py::arg("feature_radius")=1.0f);
+      m.def("featureSHOT352Radius", &featureSHOT352Radius,
+          py::arg("pointcloud"),
+          py::arg("keypoints"),
+          py::arg("normal_radius")=10.0f,
           py::arg("feature_radius")=1.0f);
     m.def("featureSHOT352WithNormal", &featureSHOT352WithNormal,
           py::arg("pointcloud"),

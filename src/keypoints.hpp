@@ -199,6 +199,11 @@ Eigen::MatrixXf featureSHOT352(const Eigen::MatrixXf pointcloud,
                                const int compute_normal_k,
                                const float feature_radius);
 
+Eigen::MatrixXf featureSHOT352Radius(const Eigen::MatrixXf pointcloud,
+                               const Eigen::MatrixXf keypoints,
+                               const float normal_radius,
+                               const float feature_radius);
+
 Eigen::MatrixXf featureSHOT352WithNormal(const Eigen::MatrixXf pointcloud,
                                const Eigen::MatrixXf normals,
                                const Eigen::MatrixXf keypoints,
